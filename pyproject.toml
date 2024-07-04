@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "smart-assess"
+version = "0.1.0"
+description = ""
+authors = ["uyuutosa <sayu819@gmail.com>"]
+readme = "README.md"
+packages = [{include = "smart_assess"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+langchain-openai = "^0.1.14"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
