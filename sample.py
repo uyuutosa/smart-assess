@@ -1,35 +1,45 @@
 import base64
+import io
 import os
+from pathlib import Path
 
 import langchain
-from langchain.chat_models import ChatOpenAI
+import PIL.Image as Image
 from langchain.schema.messages import AIMessage, HumanMessage
-
-def encode_image(image_path):
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode("utf-8")
+from langchain_openai import ChatOpenAI
 
 
-# 画像をBase64エンコード
-base64_image = encode_image("./problem.jpg")
-chain = ChatOpenAI(model="gpt-4o", max_tokens=1024)
-msg = chain.invoke(
-    [
-        AIMessage(
-            content="You are a great elementary school teacher that is especially good at OCR from images"
-        ),
-        HumanMessage(
-            content=[
-                {
-                    "type": "text",
-                    "text": "please answer the question written in the image in Japanese.",
-                },
-                {
-                    "type": "image_url",
-                    "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
-                },
-            ]
-        ),
-    ]
-)
-print(msg.content)
+def encode_image(byte_data):
+    return base64.b64encode(byte_data).decode("utf-8")
+
+
+def read_image(image: Image):
+    byte_arr = io.BytesIO()
+    image.save(byte_arr, format="JPEG")
+    byte_data = byte_arr.getvalue()
+
+    # 画像をBase64エンコード
+    base64_image = encode_image(byte_data)
+    chain = ChatOpenAI(model="gpt-4o", max_tokens=1024)
+    msg = chain.invoke(
+        [
+            AIMessage(
+                content="You are a great elementary school teacher that is especially good at OCR from images"
+            ),
+            HumanMessage(
+                content=[
+                    {
+                        "type": "text",
+                        #"text": "please answer the question written in the image in Japanese. And you should surround the mathmatical equations with $$.",
+                        "text": "You are a great elementary school teacher that is especially good at OCR from images. \
+                        Please answer the question written in the image in Japanese. You should surround the mathematical equations with $$ to display them correctly in Markdown."
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
+                    },
+                ]
+            ),
+        ]
+    )
+    return msg.content
